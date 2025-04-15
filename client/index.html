@@ -23,6 +23,8 @@
   <script>
     const socket = io("http://localhost:3000");
 
+    const username = prompt("Enter your name:");
+
     const form = document.getElementById("message-form");
     const input = document.getElementById("message-input");
     const messages = document.getElementById("messages");
@@ -30,13 +32,24 @@
     form.addEventListener("submit", (e) => {
       e.preventDefault();
       const msg = input.value;
-      socket.emit("chat message", msg);
+      socket.emit("chat message", { user: username, text: msg });
       input.value = "";
     });
 
-    socket.on("chat message", (msg) => {
+    // Listen for the history of messages
+    socket.on("chat history", (history) => {
+      history.forEach((data) => {
+        const item = document.createElement("div");
+        item.textContent = `${data.user}: ${data.text}`;
+        messages.appendChild(item);
+      });
+      messages.scrollTop = messages.scrollHeight;
+    });
+
+    // Listen for new chat messages
+    socket.on("chat message", (data) => {
       const item = document.createElement("div");
-      item.textContent = msg;
+      item.textContent = `${data.user}: ${data.text}`;
       messages.appendChild(item);
       messages.scrollTop = messages.scrollHeight;
     });
